@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>闇の影</title>
+    <link rel="icon" href="imagenes/favicon.png" type="image/x-icon">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .image-container {
+            position: relative;
+            width: 80vw;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .fade-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: linear-gradient(to bottom, transparent, black);
+            pointer-events: none;
+        }
+
+        .text-overlay, .dots {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1.2em;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            border: 1px solid white;
+            box-sizing: border-box;
+        }
+
+        .text-overlay {
+            display: none;
+        }
+
+        .dots {
+            display: none;
+        }
+
+        .flicker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 10;
+            pointer-events: none;
+            display: none;
+            animation: flicker 0.5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+
+        .scratch {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            height: auto;
+            background-image: url('imagenes/ataque1.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0;
+            z-index: 20;
+            display: none;
+        }
+
+        @keyframes scratch {
+            0% { transform: translate(-50%, -50%) translateX(-100%); opacity: 1; }
+            100% { transform: translate(-50%, -50%) translateX(100%); opacity: 0; }
+        }
+
+        .text-overlay.typing {
+            animation: typing 5s steps(40, end) forwards;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img id="interactive-image" src="imagenes/puertacerradafoto.png" alt="Imagen Interactiva">
+        <div class="fade-bottom"></div>
+        <div id="text-overlay" class="text-overlay">
+            No escaparás de mí. Tu sufrimiento será eterno, y tu alma se perderá en nuestra condena.
+        </div>
+        <div id="dots" class="dots">...</div>
+        <div id="flicker" class="flicker"></div>
+        <div id="scratch" class="scratch"></div>
+        <img id="third-image" src="imagenes/fantasmapuerta1.png" style="display:none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 5;">
+    </div>
+    <audio id="click-sound" src="sonidos/puertaabierta.mp3"></audio>
+    <audio id="ghost-sound" src="sonidos/fantasma1.mp3"></audio>
+    <audio id="attack-sound" src="sonidos/fantasmaataque1.mp3"></audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const image = document.getElementById('interactive-image');
+            const clickSound = document.getElementById('click-sound');
+            const ghostSound = document.getElementById('ghost-sound');
+            const attackSound = document.getElementById('attack-sound');
+            const textOverlay = document.getElementById('text-overlay');
+            const flicker = document.getElementById('flicker');
+            const dots = document.getElementById('dots');
+            const scratch = document.getElementById('scratch');
+            const thirdImage = document.getElementById('third-image');
+            const images = [
+                'imagenes/puertacerradafoto.png', 
+                'imagenes/puertabiertafoto.png', 
+                'imagenes/fantasmapuerta1.png'
+            ];
+            let currentIndex = 0;
+            let isTransitioning = false;
+
+            function handleClick() {
+                if (isTransitioning) return;
+                isTransitioning = true;
+
+                if (currentIndex === 0) {
+                    setTimeout(() => {
+                        clickSound.play().catch(error => console.error('Error al reproducir el sonido:', error));
+                        setTimeout(() => {
+                            currentIndex = 1;
+                            image.src = images[currentIndex];
+                            isTransitioning = false;
+                        }, 200);
+                    }, 2000);
+                } else if (currentIndex === 1) {
+                    setTimeout(() => {
+                        currentIndex = 2;
+                        image.src = images[currentIndex];
+                        ghostSound.play().catch(error => console.error('Error al reproducir el sonido del fantasma:', error));
+                        dots.style.display = "block";
+                        setTimeout(() => {
+                            dots.style.display = "none";
+                            textOverlay.style.display = "block";
+                            textOverlay.classList.add('typing');
+                            setTimeout(() => {
+                                textOverlay.style.display = "none";
+                                textOverlay.classList.remove('typing');
+                                flicker.style.display = "block";
+                                setTimeout(() => {
+                                    flicker.style.display = "none";
+                                    attackSound.play().catch(error => console.error('Error al reproducir el sonido del ataque:', error));
+                                    scratch.style.display = "block";
+                                    scratch.style.animation = "scratch 0.5s forwards";
+                                    setTimeout(() => {
+                                        scratch.style.display = "none";
+                                        isTransitioning = false;
+                                    }, 500);
+                                }, 1000);
+                            }, 5000);
+                        }, 1500);
+                    }, 2000);
+                }
+            }
+
+            image.addEventListener('click', handleClick);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
